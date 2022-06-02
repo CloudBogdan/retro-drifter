@@ -7,7 +7,8 @@ A little stylesed arcade driving game made with [p5.js](https://p5js.org) webgl 
 1. It's a game
 2. Satisfying controls
 3. Pixel graphics
-4. :D 
+4. Infinitely generated world
+5. :D 
 
 `[WASD]` - controls
 
