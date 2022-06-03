@@ -2,6 +2,9 @@ import { Vector } from "p5"
 import { game } from "../game"
 import Assets from "../utils/Assets";
 import Controller from "../utils/Controller"
+import Environment from "../utils/Environment";
+import Sounds from "../utils/Sounds";
+import Camera from "./Camera";
 import { Particle } from "./Particle";
 
 export class Car {
@@ -26,7 +29,9 @@ export class Car {
     isDrifting: boolean = false
     isMaxSpeed: boolean = false
     isBraking: boolean = false
-    isSlow: boolean = false
+    isSlowDown: boolean = false
+    lightsEnabled: boolean = false
+    motorSoundIsPlaying: boolean = false
 
     particles: Particle[] = []
     
@@ -36,7 +41,7 @@ export class Car {
 
     update() {
         this.isBraking = Controller.space;
-        this.isSlow = Controller.shift || this.acc.z < 0;
+        this.isSlowDown = Controller.shift || this.acc.z < 0;
 
         // Acceleration of movement and front wheels rotation
         this.acc.z = (+Controller.up - +Controller.down);
@@ -51,10 +56,10 @@ export class Car {
         }
         
         // Velocity of movement and front wheel rotation
-        this.rotVel.y += this.rotAcc.y * this.rotSpeed * this.vel.z * (this.isSlow ? 1.4 : 1);
+        this.rotVel.y += this.rotAcc.y * this.rotSpeed * this.vel.z * (this.isSlowDown ? 1.4 : 1);
         this.rotVel.mult(.8);
         
-        this.vel.z += this.acc.z * (this.isSlow ? this.speed*.5 : this.speed);
+        this.vel.z += this.acc.z * (this.isSlowDown ? this.speed*.5 : this.speed);
         this.vel.mult(.95);
 
         // Some booleans...
@@ -85,28 +90,39 @@ export class Car {
         this.leftWheelPos.x = this.pos.x - this.dir.x*.8 - Math.sin((this.rot.y+90) * (Math.PI/180)) * .4;
         this.leftWheelPos.z = this.pos.z - this.dir.z*.8 - Math.cos((this.rot.y+90) * (Math.PI/180)) * .4;
 
+        // Sounds
+        Sounds.setOscFrequency("motor", (this.vel.z * 10) / 4 * 50);
+
+        // Effects
+        if (this.isBraking && this.vel.z > .05) {
+            Camera.shake(5, .02);
+        }
+        this.lightsEnabled = Environment.daylight < .4;
+
         this.particlesUpdate();
     }
 
     particlesUpdate() {
         // Drifting particles
-        if (this.isMaxSpeed && (this.isDrifting ? true : game.frameCount % 2 == 0)) {
+        if ((this.isMaxSpeed || (this.isBraking && this.vel.z > .06)) && (this.isDrifting ? true : game.frameCount % 2 == 0)) {
             const part = new Particle(0);
 
-            part.gravityFactor = 1;
+            part.gravityFactor = .4;
+            part.scaleDownFactor = .02;
+            part.maxLifeTime = 999;
             part.pos.set(
                 this.pos.x - this.dir.x + game.random(-.5, .5),
                 this.pos.y,
                 this.pos.z - this.dir.z + game.random(-.5, .5)
             );
             
-            part.rotVel.x += game.random(10, 20);
-            part.rotVel.y += game.random(10, 20);
-            part.rotVel.z += game.random(10, 20);
+            part.rotVel.x += game.random(10, 15);
+            part.rotVel.y += game.random(10, 15);
+            part.rotVel.z += game.random(10, 15);
 
-            part.vel.y += game.random(-.6, -.2);
-            part.vel.x -= game.random(-.1, .1) + this.dirVel.x/2;
-            part.vel.z -= game.random(-.1, .1) + this.dirVel.z/2;
+            part.vel.y += game.random(-.2, -.1);
+            part.vel.x -= game.random(-.1, .1);
+            part.vel.z -= game.random(-.1, .1);
             
             this.particles.push(part);
         }
@@ -114,6 +130,9 @@ export class Car {
         if (this.isDrifting || this.isBraking) {
             const part1 = new Particle(1);
             const part2 = new Particle(1);
+
+            part1.maxLifeTime = 180;
+            part2.maxLifeTime = 180;
 
             part1.pos.set(
                 Math.floor(this.rightWheelPos.x / .4) * .4,
@@ -134,21 +153,15 @@ export class Car {
         for (let i = 0; i < this.particles.length; i ++) {
             const part = this.particles[i];
 
-            if (part.type == 0) { // Snow wave particles
-                if (part.lifeTime > 40) {
-                    this.particles.splice(i, 1);
-                }
-            } else if (part.type == 1) { // Wheel steps
-                if (part.lifeTime > 140) {
-                    this.particles.splice(i, 1);
-                }
-            }
             part.update(this.particles, i);
             
         }
     }
     
     draw() {
+        if (this.lightsEnabled)
+            game.spotLight(228, 234, 255, this.pos.x, -4, this.pos.z, new Vector(this.dir.x, .7, this.dir.z), 50, 28);
+        
         game.push();
 
         game.translate(this.pos.x, this.pos.y, this.pos.z);
@@ -178,13 +191,14 @@ export class Car {
             game.rotateX(part.rot.x);
             game.rotateY(part.rot.y);
             game.rotateZ(part.rot.z);
+            game.scale(part.scale.x, part.scale.y, part.scale.z);
             
-            if (part.type == 0) {
+            if (part.type == 0) { // Snow
                 game.fill(200);
                 game.ambientMaterial(240)
-                game.box(.4);
-            } else if (part.type == 1) {
-                game.emissiveMaterial(180);
+                game.box(.5);
+            } else if (part.type == 1) { // Wheels steps
+                game.emissiveMaterial(Environment.background.red*.85, Environment.background.green*.85, Environment.background.blue*.85);
                 game.box(.4);
             }
 

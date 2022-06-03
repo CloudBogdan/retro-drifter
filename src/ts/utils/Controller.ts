@@ -1,3 +1,6 @@
+import Environment from "./Environment"
+import Sounds from "./Sounds"
+
 class Controller {
     right: boolean = false
     left: boolean = false
@@ -37,6 +40,10 @@ class Controller {
             this.space = false;
         if (e.code == "ShiftLeft") 
             this.shift = false;
+
+        if (e.code == "KeyM") {
+            Sounds.allowSounds = !Sounds.allowSounds;
+        }
     }
 }
 export default new Controller()

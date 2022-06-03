@@ -2,6 +2,7 @@ import { Vector } from "p5";
 import { car, game } from "../../game";
 import Assets from "../../utils/Assets";
 import Emitter from "../../utils/Emitter";
+import Camera from "../Camera";
 import { Particle } from "../Particle";
 
 export class Tree {
@@ -24,10 +25,14 @@ export class Tree {
             }
             
             // Slowing down car
-            if (car.isDrifting)
-                car.vel.z *= .9;
-            else
-                car.vel.z *= .8;
+            if (!car.isSlowDown) {
+                if (car.isDrifting)
+                    car.vel.z *= .9;
+                    else
+                    car.vel.z *= .8;
+            } else {
+                car.vel.z *= .95;
+            }
         } else {
             this.isCarCollision = false;
         }
@@ -67,5 +72,8 @@ export class Tree {
             
             Emitter.particles.push(part);
         }
+
+        if (!car.isSlowDown)
+            Camera.shake(10, .08);
     }
 } 

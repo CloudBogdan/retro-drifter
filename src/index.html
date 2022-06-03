@@ -5,6 +5,11 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
+        @font-face {
+            font-family: pixel;
+            src: url("./fonts/pixel.ttf");
+        }
+        
         body, html {
             width: 100%;
             height: 100%;
@@ -17,11 +22,20 @@
             background: #000;
             user-select: none;
             -webkit-user-drag: none;
+            color: #fff;
+            font-family: pixel, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
         }
         canvas {
             width: 100vh !important;
             height: 100vh !important;
             image-rendering: pixelated;
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
+        .canvases {
+            width: 100vh;
+            height: 100vh;
             position: absolute;
             left: 50vw;
             top: 50vh;
@@ -30,10 +44,40 @@
         #defaultCanvas1 {
             z-index: 9;
         }
+        .text {
+            position: absolute;
+            left: 20px;
+            top: 20px;
+            z-index: 20;
+            image-rendering: pixelated;
+            animation: fade linear both;
+            animation-duration: 4s;
+            animation-delay: 10s;
+            color: #000;
+        }
+
+        @keyframes fade {
+            from {
+                opacity: 1;
+            }
+            to {
+                opacity: 0;
+            }
+        }
     </style>
     <title>Bit drifter - by Bogdanov :D</title>
 </head>
 <body>
+    <div class="canvases">
+        <p class="text">
+            <span>Click to enable sounds!</span><br>
+            <span>[WASD] - controls</span><br>
+            <span>[Shift] - slow down</span><br>
+            <span>[Space] - braking</span><br>
+            <span>[M] - mute\unmute</span><br>
+        </p>
+
+    </div>
     <script src="ts/main.ts"></script>
 </body>
 </html>
