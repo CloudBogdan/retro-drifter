@@ -1,7 +1,7 @@
 # Bit drifter
 A little stylesed arcade driving game made with [p5.js](https://p5js.org) webgl and [blockbench](https://www.blockbench.net) 3d editor!
 
-[Play it here](https://cloudbogdan.github.io/bit-drifter/)
+[Play it here](https://bogdan-ov.github.io/bit-drifter/)
 
 ### Features
 1. It's a game
